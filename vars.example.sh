@@ -16,6 +16,7 @@ export BIND_IP=127.0.0.1
 # На каком уровне использовать пароль:
 # - basic - HTTP Basic авторизация с помощью nginx (по умолчанию)
 # - app - пароль на уровне самого приложения code-server
+# - none - никакой аутентификации
 export PWD_LEVEL=basic
 # Пользователь для HTTP Basic авторизации (по умолчанию coder)
 export BASIC_USER=coder

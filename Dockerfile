@@ -1,25 +1,53 @@
 FROM codercom/code-server:latest
 
+# common packages
+RUN sudo apt-get update && sudo apt-get upgrade -y && \
+    sudo apt-get install -y gcc g++ make iputils-ping httpie unzip zip wget jq mc && \
+    sudo apt-get install -y python-is-python3 ruby postgresql sqlite3
+
+# node.js and typescript
 RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
-    sudo apt-get install -y gcc g++ make iputils-ping httpie nodejs && \
+    sudo apt-get install -y nodejs && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     sudo apt-get install -y yarn && \
-    sudo apt-get upgrade -y && \
     sudo npm install --location=global typescript
 
-RUN curl -L -O https://go.dev/dl/go1.18.3.linux-amd64.tar.gz && \
-    sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz && \
+# Go
+RUN curl -L -O https://go.dev/dl/go1.18.4.linux-amd64.tar.gz && \
+    sudo tar -C /usr/local -xzf go1.18.4.linux-amd64.tar.gz && \
     echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile && \
-    rm go1.18.3.linux-amd64.tar.gz && \
+    rm go1.18.4.linux-amd64.tar.gz && \
     export PATH=$PATH:/usr/local/go/bin && \
     go install -v golang.org/x/tools/gopls@latest && \
-    go install -v github.com/go-delve/delve/cmd/dlv@latest && \
-    code-server --install-extension golang.go
+    go install -v github.com/go-delve/delve/cmd/dlv@latest
 
-RUN sudo apt install -y unzip zip openjdk-11-jre-headless && \
+# java and kotlin
+RUN sudo apt-get install -y  openjdk-17-jdk && \
     curl -L "https://get.sdkman.io" | bash && \
-    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin" && \
+    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin"
+
+# code-server extensions
+RUN code-server --install-extension golang.go && \
     code-server --install-extension fwcd.kotlin && \
     code-server --install-extension vscjava.vscode-java-pack && \
-    code-server --install-extension formulahendry.code-runner
+    code-server --install-extension formulahendry.code-runner && \
+    code-server --install-extension ms-python.python && \
+    code-server --install-extension rebornix.ruby && \
+    code-server --install-extension mtxr.sqltools && \
+    code-server --install-extension mtxr.sqltools-driver-sqlite && \
+    code-server --install-extension mtxr.sqltools-driver-pg && \
+    code-server --install-extension mtxr.sqltools-driver-mysql
+
+# postgres
+RUN sudo sed -i -E 's/(peer|md5)$/trust/g' /etc/postgresql/13/main/pg_hba.conf
+
+# dependensies
+RUN wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.1/server.zip && \
+    unzip server.zip -d ~/.local/ && \
+    wget https://github.com/fwcd/kotlin-debug-adapter/releases/download/0.4.3/adapter.zip && \
+    unzip adapter.zip -d ~/.local/ && \
+    rm *.zip && \
+    echo '{}' | jq '. += {"kotlin.languageServer.path": "'$HOME'/.local/server/bin/kotlin-language-server"}' | jq '. += {"kotlin.debugAdapter.path": "'$HOME'/.local/adapter/bin/kotlin-debug-adapter"}' | jq '. += {"kotlin.languageServer.enabled": true}' | jq '. += {"kotlin.debugAdapter.enabled": true}' | jq '. += {"sqltools.connections": [{"previewLimit": 50,     "server": "localhost", "port": 5432, "driver": "PostgreSQL", "name": "postgres-local", "database": "postgres", "username": "postgres", "password": ""}]}' > ~/.local/share/code-server/User/settings.json && \
+    mkdir -p "$HOME/.local/share/code-server/User/globalStorage/fwcd.kotlin" && \
+    echo '{"initialized":true}' > "$HOME/.local/share/code-server/User/globalStorage/fwcd.kotlin/config.json"

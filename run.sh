@@ -69,7 +69,7 @@ cert: false" > $DIR/.config/code-server/config.yaml
         sed -i "/^auth:/c\auth: password" $DIR/.config/code-server/config.yaml
     fi
 
-    if [[ $PWD_LEVEL == basic ]]; then
+    if [[ $PWD_LEVEL == basic || $PWD_LEVEL == none ]]; then
         echo "Disable app-level password in code-server's config..."
         sed -i "/^auth:/c\auth: none" $DIR/.config/code-server/config.yaml
     fi
@@ -128,10 +128,18 @@ cert: false" > $DIR/.config/code-server/config.yaml
         PUBLIC_URL="$PUBLIC_URL:$CODE_SERVER_PORT"
     fi
 
-    echo "============ SERVER PASSWORD =================="
-    echo Password: $PASS
-    echo $PUBLIC_URL/
-    echo "==============================================="
+    docker exec $CONTAINER sudo service postgresql start
+
+    if [[ $PWD_LEVEL != 'none' ]]; then
+        echo "============ SERVER PASSWORD =================="
+        echo Password: $PASS
+        echo $PUBLIC_URL/
+        echo "==============================================="
+    else
+        echo "=================== SERVER ===================="
+        echo $PUBLIC_URL/
+        echo "==============================================="
+    fi
 }
 
 make_checks() {
@@ -185,9 +193,9 @@ make_checks() {
         PWD_LEVEL=basic
     fi
 
-    if [[ $PWD_LEVEL != 'basic' && $PWD_LEVEL != 'app' ]]; then
-    echo 'Wrong PWD_LEVEL'
-    exit -1
+    if [[ $PWD_LEVEL != 'basic' && $PWD_LEVEL != 'app' && $PWD_LEVEL != 'none' ]]; then
+        echo 'Wrong PWD_LEVEL'
+        exit -1
     fi
 
     if [[ -z $CODE_SERVER_SCHEME ]]; then
