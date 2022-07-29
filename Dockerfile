@@ -50,4 +50,5 @@ RUN wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.1/
     rm *.zip && \
     echo '{}' | jq '. += {"kotlin.languageServer.path": "'$HOME'/.local/server/bin/kotlin-language-server"}' | jq '. += {"kotlin.debugAdapter.path": "'$HOME'/.local/adapter/bin/kotlin-debug-adapter"}' | jq '. += {"kotlin.languageServer.enabled": true}' | jq '. += {"kotlin.debugAdapter.enabled": true}' | jq '. += {"sqltools.connections": [{"previewLimit": 50,     "server": "localhost", "port": 5432, "driver": "PostgreSQL", "name": "postgres-local", "database": "postgres", "username": "postgres", "password": ""}]}' > ~/.local/share/code-server/User/settings.json && \
     mkdir -p "$HOME/.local/share/code-server/User/globalStorage/fwcd.kotlin" && \
-    echo '{"initialized":true}' > "$HOME/.local/share/code-server/User/globalStorage/fwcd.kotlin/config.json"
+    echo '{"initialized":true}' > "$HOME/.local/share/code-server/User/globalStorage/fwcd.kotlin/config.json" && \
+    echo '[]' | jq '. += [{"key": "ctrl+enter", "command": "sqltools.executeCurrentQuery"}]' > ~/.local/share/code-server/User/keybindings.json

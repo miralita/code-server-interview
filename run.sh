@@ -128,7 +128,14 @@ cert: false" > $DIR/.config/code-server/config.yaml
         PUBLIC_URL="$PUBLIC_URL:$CODE_SERVER_PORT"
     fi
 
-    docker exec $CONTAINER sudo service postgresql start
+    SQL_FILES=`find $DIR -wholename "$DIR/project/**/init/*.sql" | sed -e "s|$DIR/||g"`
+
+    if ! [[ -z $SQL_FILES ]]; then
+        docker exec $CONTAINER sudo service postgresql start
+        for file in $SQL_FILES; do
+            docker exec $CONTAINER psql -U postgres -f "/home/coder/$file"
+        done
+    fi
 
     if [[ $PWD_LEVEL != 'none' ]]; then
         echo "============ SERVER PASSWORD =================="
