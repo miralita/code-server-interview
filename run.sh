@@ -22,9 +22,15 @@ main() {
     echo "Cleanup answers..."
     rm -rf $DIR/interview-tasks/**/answers
 
-    if [[ ! -z $TEST && ! -e $DIR/interview-tasks/$TEST ]]; then
-        echo "Unknown test $TEST"
-        exit -1
+    if [[ ! -z $TEST ]]; then
+        IFS=','
+        read -a TESTS <<< "$TEST"
+        for val in "${TESTS[@]}"; do
+            if [[ ! -e $DIR/interview-tasks/$val ]]; then
+                echo "Unknown test $val"
+                exit -1
+            fi
+        done
     fi
 
     if [ "$(docker ps -q -f name=^$CONTAINER$)" ]; then
@@ -47,8 +53,10 @@ main() {
         echo "Copy all tasks to project dir..."
         cp -r $DIR/interview-tasks/* $DIR/project/
     else
-        echo "Copy tasks for $TEST to project dir..."
-        cp -r $DIR/interview-tasks/$TEST $DIR/project/
+        for val in "${TESTS[@]}"; do
+            echo "Copy tasks for $val to project dir..."
+            cp -r $DIR/interview-tasks/$val $DIR/project/
+        done
     fi
 
     echo "Generate password..."
@@ -80,7 +88,7 @@ cert: false" > $DIR/.config/code-server/config.yaml
     -v "$DIR/project:/home/coder/project" \
     -u "$(id -u):$(id -g)" \
     -e "DOCKER_USER=$USER" \
-    $IMAGE /home/coder/project/$TEST
+    $IMAGE /home/coder/project
 
     sleep 1
 
