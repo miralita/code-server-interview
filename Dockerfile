@@ -11,16 +11,18 @@ RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     sudo apt-get install -y yarn && \
-    sudo npm install --location=global typescript
+    sudo npm install --location=global typescript && \
+    sudo npm install --location=global ts-node
 
 # Go
-RUN curl -L -O https://go.dev/dl/go1.18.4.linux-amd64.tar.gz && \
-    sudo tar -C /usr/local -xzf go1.18.4.linux-amd64.tar.gz && \
+RUN curl -L -O https://go.dev/dl/go1.19.1.linux-amd64.tar.gz && \
+    sudo tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz && \
     echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile && \
-    rm go1.18.4.linux-amd64.tar.gz && \
+    rm go1.19.1.linux-amd64.tar.gz && \
     export PATH=$PATH:/usr/local/go/bin && \
     go install -v golang.org/x/tools/gopls@latest && \
-    go install -v github.com/go-delve/delve/cmd/dlv@latest
+    go install -v github.com/go-delve/delve/cmd/dlv@latest && \
+    go install -v honnef.co/go/tools/cmd/staticcheck@latest
 
 # java and kotlin
 RUN sudo apt-get install -y  openjdk-17-jdk && \
