@@ -4,6 +4,8 @@
 export DIR=/opt/code-server
 # Репозиторий, откуда клонировать задачи (обязательно)
 export REPO=ssh://git@...
+# Не удалять ответы на задачи из репозитория (yes, чтобы не удалять)
+export KEEP_ANSWERS=
 # Докер-образ, по умолчанию code-server:local
 export IMAGE=code-server:local
 # Имя для контейнера, по умолчанию code-server
@@ -28,3 +30,4 @@ export CODE_SERVER_SCHEME=https
 export CODE_SERVER_DOMAIN=code-server.example.com
 # Порт (по умолчанию 80 для http и 443 для https). Если не используется nginx, то можно просто продублировать BIND_PORT
 export CODE_SERVER_PORT=443
+
