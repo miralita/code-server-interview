@@ -1,9 +1,9 @@
-FROM codercom/code-server:4.10.0-debian
+FROM codercom/code-server:4.14.1-debian
 
 # common packages
 RUN sudo apt-get update && sudo apt-get upgrade -y && \
     sudo apt-get install -y gcc g++ make iputils-ping httpie unzip zip wget jq mc && \
-    sudo apt-get install -y python-is-python3 ruby postgresql sqlite3 && \
+    sudo apt-get install -y python-is-python3 ruby postgresql sqlite3 ca-certificates-java && \
     echo '============== node.js and typescript ==============' && \
     curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
     sudo apt-get install -y nodejs && \
@@ -13,10 +13,10 @@ RUN sudo apt-get update && sudo apt-get upgrade -y && \
     sudo npm install --location=global typescript && \
     sudo npm install --location=global ts-node && \
     echo '====================== Go =========================' && \
-    curl -L -O https://go.dev/dl/go1.20.1.linux-amd64.tar.gz && \
-    sudo tar -C /usr/local -xzf go1.20.1.linux-amd64.tar.gz && \
+    curl -L -O https://go.dev/dl/go1.20.5.linux-amd64.tar.gz && \
+    sudo tar -C /usr/local -xzf go1.20.5.linux-amd64.tar.gz && \
     echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile && \
-    rm go1.20.1.linux-amd64.tar.gz && \
+    rm go1.20.5.linux-amd64.tar.gz && \
     export PATH=$PATH:/usr/local/go/bin && \
     go install -v golang.org/x/tools/gopls@latest && \
     go install -v github.com/go-delve/delve/cmd/dlv@latest && \
@@ -24,7 +24,7 @@ RUN sudo apt-get update && sudo apt-get upgrade -y && \
     echo '================== java and kotlin ================' && \
     sudo apt-get install -y  openjdk-17-jdk && \
     curl -L "https://get.sdkman.io" | bash && \
-    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin 1.7.21" && \
+    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin 1.8.20" && \
     sudo apt autoremove -y && sudo apt clean && \
     echo '=============== code-server extensions ============' && \
     code-server --install-extension golang.go && \
@@ -40,7 +40,7 @@ RUN sudo apt-get update && sudo apt-get upgrade -y && \
     echo '==================== postgres =====================' && \
     sudo sed -i -E 's/(peer|md5)$/trust/g' /etc/postgresql/13/main/pg_hba.conf && \
     echo '=================== dependensies ==================' && \
-    wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.1/server.zip && \
+    wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.3/server.zip && \
     unzip server.zip -d ~/.local/ && \
     wget https://github.com/fwcd/kotlin-debug-adapter/releases/download/0.4.3/adapter.zip && \
     unzip adapter.zip -d ~/.local/ && \
