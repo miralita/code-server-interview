@@ -1,22 +1,24 @@
-FROM codercom/code-server:4.14.1-debian
+FROM codercom/code-server:4.18.0-debian
 
 # common packages
 RUN sudo apt-get update && sudo apt-get upgrade -y && \
-    sudo apt-get install -y gcc g++ make iputils-ping httpie unzip zip wget jq mc && \
-    sudo apt-get install -y python-is-python3 ruby postgresql sqlite3 ca-certificates-java && \
+    sudo apt-get install -y gcc g++ make iputils-ping httpie unzip zip wget jq mc gnupg apt-utils && \
+    sudo apt-get install -y python-is-python3 ruby postgresql sqlite3 ca-certificates ca-certificates-java && \
     echo '============== node.js and typescript ==============' && \
-    curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
-    sudo apt-get install -y nodejs && \
+    sudo mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list && \
+    sudo apt update && sudo apt-get install -y nodejs && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     sudo apt-get install -y yarn && \
     sudo npm install --location=global typescript && \
     sudo npm install --location=global ts-node && \
     echo '====================== Go =========================' && \
-    curl -L -O https://go.dev/dl/go1.20.5.linux-amd64.tar.gz && \
-    sudo tar -C /usr/local -xzf go1.20.5.linux-amd64.tar.gz && \
+    curl -L -O https://go.dev/dl/go1.21.4.linux-amd64.tar.gz && \
+    sudo tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz && \
     echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile && \
-    rm go1.20.5.linux-amd64.tar.gz && \
+    rm go1.21.4.linux-amd64.tar.gz && \
     export PATH=$PATH:/usr/local/go/bin && \
     go install -v golang.org/x/tools/gopls@latest && \
     go install -v github.com/go-delve/delve/cmd/dlv@latest && \
@@ -24,7 +26,7 @@ RUN sudo apt-get update && sudo apt-get upgrade -y && \
     echo '================== java and kotlin ================' && \
     sudo apt-get install -y  openjdk-17-jdk && \
     curl -L "https://get.sdkman.io" | bash && \
-    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin 1.8.20" && \
+    bash -c "source /home/coder/.sdkman/bin/sdkman-init.sh && sdk install kotlin 1.9.20" && \
     sudo apt autoremove -y && sudo apt clean && \
     echo '=============== code-server extensions ============' && \
     code-server --install-extension golang.go && \
@@ -40,9 +42,9 @@ RUN sudo apt-get update && sudo apt-get upgrade -y && \
     echo '==================== postgres =====================' && \
     sudo sed -i -E 's/(peer|md5)$/trust/g' /etc/postgresql/13/main/pg_hba.conf && \
     echo '=================== dependensies ==================' && \
-    wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.3/server.zip && \
+    wget https://github.com/fwcd/kotlin-language-server/releases/download/1.3.7/server.zip && \
     unzip server.zip -d ~/.local/ && \
-    wget https://github.com/fwcd/kotlin-debug-adapter/releases/download/0.4.3/adapter.zip && \
+    wget https://github.com/fwcd/kotlin-debug-adapter/releases/download/0.4.4/adapter.zip && \
     unzip adapter.zip -d ~/.local/ && \
     rm *.zip && \
     echo '{}' | jq '. += {"kotlin.languageServer.path": "'$HOME'/.local/server/bin/kotlin-language-server"}' | jq '. += {"kotlin.debugAdapter.path": "'$HOME'/.local/adapter/bin/kotlin-debug-adapter"}' | jq '. += {"kotlin.languageServer.enabled": true}' | jq '. += {"kotlin.debugAdapter.enabled": true}' | jq '. += {"sqltools.connections": [{"previewLimit": 50,     "server": "localhost", "port": 5432, "driver": "PostgreSQL", "name": "postgres-local", "database": "postgres", "username": "postgres", "password": ""}]}' > ~/.local/share/code-server/User/settings.json && \
